@@ -1,1 +1,1 @@
-# house_md_tg_bot
+# House MD telegram bot
