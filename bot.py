@@ -1,47 +1,45 @@
-from aiogram import Bot, Dispatcher, executor, types
+import logging
+from telegram import Update
+from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
+from utils.get_answer_hf_api import get_answer
 from config_data.config import Config, load_config
-from utils.func import (get_ranked_docs, 
-                        load_dataset, load_cls_base, 
-                        load_bi_enc_model, load_cross_enc_model)
 
 config: Config = load_config()
 
-bot = Bot(token=config.tg_bot.token)
-dp = Dispatcher(bot)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
 
-@dp.message_handler(commands=["start"])
-async def welcome(message: types.Message):
-    await message.answer("Hi! Write me anything you want!")
-
-
-@dp.message_handler(commands=['help'])
-async def process_help_command(message: types.Message):
-    await message.answer(
-        "Write me anything you want."
-        "I'll send you House MD answer."
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=f"Hi, {update.effective_user.first_name}! Write me anything you want!"
     )
 
 
-@dp.message_handler()
-async def get_answer(message: types.Message):
-
-    user_input = message.text
-
-    await message.answer("Loadind the best answer...\nPlease wait couple of minutes :)")
-    dataset = load_dataset()
-    cls_base = load_cls_base()
-    bi_enc_model = load_bi_enc_model()
-    cross_enc_model = load_cross_enc_model()
-
-    answer = get_ranked_docs(
-        query=user_input, vec_query_base=cls_base, data=dataset,
-        bi_model=bi_enc_model[0], bi_tok=bi_enc_model[1],
-        cross_model=cross_enc_model[0], cross_tok=cross_enc_model[1]
+async def respond_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        reply_to_message_id=update.effective_message.id,
+        text="Loadind the best answer...\nPlease wait couple of minutes :)"
+    )
+    response_text = get_answer(update.message.text)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=response_text
     )
 
-    await message.reply(text=answer)
+
+application = ApplicationBuilder().token(config.tg_bot.token).build()
+
+start_handler = CommandHandler('start', start)
+respond_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), respond_to_user)
+
+application.add_handler(start_handler)
+application.add_handler(respond_handler)
 
 
-if __name__ == "__main__":
-    executor.start_polling(dp)
+if __name__ == '__main__':    
+    application.run_polling()

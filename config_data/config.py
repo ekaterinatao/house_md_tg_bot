@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from environs import Env
 
 
@@ -19,6 +20,7 @@ class ModelConfig:
     bi_checkpoint: str
     cross_checkpoint: str
     device: str
+    hf_client: str
 
 
 @dataclass
@@ -35,16 +37,17 @@ def load_config(path: str='.env') -> Config:
 
     return Config(
         tg_bot=TgBot(
-            token=env('BOT_TOKEN'),
+            token=env('BOT_TOKEN'), #os.environ['telegram_token']
             admin_ids=list(map(int, env.list('ADMIN_IDS')))
         ),
         data=DataConfig(
-            dataset='data/house_dataset.gz',
+            dataset='ekaterinatao/house_md_context3',
             cls_vec='ekaterinatao/house_md_cls_embeds'
         ),
         model=ModelConfig(
             bi_checkpoint='ekaterinatao/house-md-bot-bert-bi-encoder',
             cross_checkpoint='ekaterinatao/house-md-bot-bert-cross-encoder',
-            device='cpu'
+            device='cpu',
+            hf_client='ekaterinatao/house_md_bot'
         )
     )

@@ -1,7 +1,6 @@
 import torch
 import faiss
 import numpy as np
-import pandas as pd
 import datasets
 from transformers import AutoTokenizer, AutoModel
 from config_data.config import Config, load_config
@@ -26,7 +25,7 @@ def embed_bert_cls(
 
 
 def get_ranked_docs(
-    query: str, vec_query_base: np.ndarray, data: pd.DataFrame,
+    query: str, vec_query_base: np.ndarray, data: datasets,
     bi_model: AutoModel, bi_tok: AutoTokenizer, 
     cross_model: AutoModel, cross_tok: AutoTokenizer
 ) -> str:
@@ -35,11 +34,8 @@ def get_ranked_docs(
     index = faiss.IndexFlatL2(vec_shape)
     index.add(vec_query_base)
     xq = embed_bert_cls(query, bi_model, bi_tok)
-    D, I = index.search(xq.reshape(1, vec_shape), 50)
-
-    corpus = []
-    for i in I[0]:
-        corpus.append(data['answer'][i])
+    _, I = index.search(xq.reshape(1, vec_shape), 50)  # corpus contains 50 similar queries
+    corpus = [data[int(i)]['answer'] for i in I[0]]
 
     queries = [query] * len(corpus)
     tokenized_texts = cross_tok(
@@ -47,20 +43,21 @@ def get_ranked_docs(
     ).to(config.model.device)
 
     with torch.no_grad():
-        ce_scores = cross_model(
-            tokenized_texts['input_ids'], tokenized_texts['attention_mask']
-        ).last_hidden_state[:, 0, :]
-        ce_scores = ce_scores @ ce_scores.T
-
+        model_output = cross_model(
+            **{k: v.to(cross_model.device) for k, v in tokenized_texts.items()}
+        )
+    ce_scores = model_output.last_hidden_state[:, 0, :]
+    ce_scores = np.matmul(ce_scores, ce_scores.T)
     scores = ce_scores.cpu().numpy()
     scores_ix = np.argsort(scores)[::-1]
 
     return corpus[scores_ix[0][0]]
 
 
-def load_dataset(url: str=config.data.dataset) -> pd.DataFrame:
+def load_dataset(url: str=config.data.dataset) -> datasets:
 
-    house_dataset = pd.read_csv(url, compression='gzip')
+    dataset = datasets.load_dataset(url, split='train')
+    house_dataset = dataset.filter(lambda row: row['labels'] == 0)
 
     return house_dataset
 
@@ -68,7 +65,7 @@ def load_dataset(url: str=config.data.dataset) -> pd.DataFrame:
 def load_cls_base(url: str=config.data.cls_vec) -> np.array:
 
     cls_dataset = datasets.load_dataset(url, split='train')
-    cls_base = np.stack([embed for embed in pd.DataFrame(cls_dataset)['cls_embeds']])
+    cls_base = np.stack([embed['cls_embeds'] for embed in cls_dataset])
 
     return cls_base
 
