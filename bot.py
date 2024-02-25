@@ -1,7 +1,8 @@
 import logging
 from telegram import Update
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
-from utils.get_answer_hf_api import get_answer
+from utils.get_answer_local import get_answer
+# from utils.get_answer_hf_api import get_answer # for running in huggingface gradio app
 from config_data.config import Config, load_config
 
 config: Config = load_config()

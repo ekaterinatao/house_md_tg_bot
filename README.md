@@ -12,7 +12,8 @@ Try simple demo of the bot on [huggingface](https://huggingface.co/spaces/ekater
 * Create a Telegram bot with [BotFather](https://t.me/botfather)  
 * Clone repository `!git clone https://github.com/ekaterinatao/house_md_tg_bot.git`  
 * Install dependencies from `requirements.txt`  
-* Paste you `BOT_TOKEN` into `.env` (see [example]())  
+* Paste you `BOT_TOKEN` into `.env` (see [example](https://github.com/ekaterinatao/house_md_tg_bot/blob/main/.env.example))
+* **Hint:** For running the bot using huggingface gradio app change import of `get_answer` function in [`bot.py` file](https://github.com/ekaterinatao/house_md_tg_bot/blob/main/bot.py) and `tg_bot.token` in [`config.py` file](https://github.com/ekaterinatao/house_md_tg_bot/blob/main/config_data/config.py).  
   
 ## Tools under the hood
 * Telegram bot and `python-telegram-bot` library  
@@ -21,9 +22,9 @@ Try simple demo of the bot on [huggingface](https://huggingface.co/spaces/ekater
 * Preprocessed [dataset](https://huggingface.co/datasets/ekaterinatao/house_md_context3) from House MD series  
 
 ## Models
-[Here]() you can find corresponding notebooks.  
+[Here](https://github.com/ekaterinatao/house_md_tg_bot/tree/main/notebooks) you can notebooks with data preprocessing and models finetuning.  
 
-**Retrieval algorythm:**  
+**Retrieval algorithm:**  
 * Finetuning `distilbert-base-uncased` model on [House MD dataset](https://huggingface.co/datasets/ekaterinatao/house_md_context3)  
 * Formation of the `CLS embeddings` of the context lines preceding the MD House's answer using [bi-encoder](https://huggingface.co/ekaterinatao/house-md-bot-bert-bi-encoder)  
 * Selecting MD House's answers from top 50 `CLS embeddings` that are similar to current request. Selection was performed using [faiss](https://github.com/facebookresearch/faiss) search.  

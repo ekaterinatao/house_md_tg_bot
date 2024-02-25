@@ -37,7 +37,7 @@ def load_config(path: str='.env') -> Config:
 
     return Config(
         tg_bot=TgBot(
-            token=env('BOT_TOKEN'), #os.environ['telegram_token']
+            token=env('BOT_TOKEN'), # os.environ['telegram_token'] # for running in huggingface gradio app
             admin_ids=list(map(int, env.list('ADMIN_IDS')))
         ),
         data=DataConfig(
