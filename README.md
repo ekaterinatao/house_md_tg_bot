@@ -29,3 +29,7 @@ Try simple demo of the bot on [huggingface](https://huggingface.co/spaces/ekater
 * Formation of the `CLS embeddings` of the context lines preceding the MD House's answer using [bi-encoder](https://huggingface.co/ekaterinatao/house-md-bot-bert-bi-encoder)  
 * Selecting MD House's answers from top 50 `CLS embeddings` that are similar to current request. Selection was performed using [faiss](https://github.com/facebookresearch/faiss) search.  
 * Re-ranking of the top 50 MD House's answers together with context using [crocc-encoder](https://huggingface.co/ekaterinatao/house-md-bot-bert-cross-encoder)  
+
+**Generative algorithm:**  
+* To test demo in colab please follow this [notebook](https://github.com/ekaterinatao/house_md_tg_bot/blob/main/generative/NLP_2_HW2_house_md_bot_inference.ipynb). The code works only on `GPU`.  
+* Finetuning tyny llama model [here](https://github.com/ekaterinatao/house_md_tg_bot/blob/main/generative/NLP_2_HW2_house_md_bot_tinyllama_train.ipynb)  
